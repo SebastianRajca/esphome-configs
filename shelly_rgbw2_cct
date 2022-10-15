@@ -1,0 +1,143 @@
+#
+# ESPhome - Shelly RGBW2 CCT 2 x Chanel
+#
+
+substitutions:
+  devicename: "shelly_rgbw2_1"
+  devicename_unc: "shelly-rgbw2-1"
+  devicename_name: "Shelly RGBW2 - 1"
+
+esphome:
+  name: ${devicename_unc}
+  platform: ESP8266
+  board: esp01_1m
+
+# Enable logging
+logger:
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+  password: !secret api_pass
+
+ota:
+  password: !secret ota_pass
+
+# Wifi network
+wifi:
+  ssid: !secret wifi_iot_name
+  password: !secret wifi_iot_pass
+  fast_connect: on
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "${devicename_unc} Failower Hotspot"
+    password: !secret failower_pass
+captive_portal:
+
+# see: https://esphome.io/components/time.html
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+# Enable Web server
+#web_server:
+#  port: 80
+#  auth:
+#    username: admin
+#    password: !secret web_server_password
+
+output:
+  - platform: esp8266_pwm
+    id: ${devicename}_out_cw_ch1
+    pin: GPIO12 # GPIO12 Kanał czerwony (R)
+    frequency: 1000 Hz
+  - platform: esp8266_pwm
+    id: ${devicename}_out_ww_ch1
+    pin: GPIO15 # GPIO15 Zielony kanał (G)
+    frequency: 1000 Hz
+  - platform: esp8266_pwm
+    id: ${devicename}_out_cw_ch2
+    pin: GPIO14 # GPIO14 Kanał niebieski (B)
+    frequency: 1000 Hz
+  - platform: esp8266_pwm
+    id: ${devicename}_out_ww_ch2
+    pin: GPIO4 # GPIO4 Kanał biały (W)
+    frequency: 1000 Hz
+
+light:
+  - platform: cwww
+    name: ${devicename_name} - Chanel 1
+    id: ${devicename}_ch1
+    cold_white: ${devicename}_out_cw_ch1 # GPIO12 Kanał czerwony (R)
+    warm_white: ${devicename}_out_ww_ch1 # GPIO15 Zielony kanał (G)
+    cold_white_color_temperature: 6500 K
+    warm_white_color_temperature: 2700 K
+    constant_brightness: true
+  - platform: cwww
+    name: ${devicename_name} - Chanel 2
+    id: ${devicename}_ch2
+    cold_white: ${devicename}_out_cw_ch2 # GPIO14 Kanał niebieski (B)
+    warm_white: ${devicename}_out_ww_ch2 # GPIO4 Kanał biały (W)
+    cold_white_color_temperature: 6500 K
+    warm_white_color_temperature: 2700 K
+    constant_brightness: true
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO5
+    id: light_0_touch
+    on_click:
+      then:
+        - if:
+            condition:
+              - light.is_off: ${devicename}_ch1
+              - light.is_off: ${devicename}_ch2
+            then:
+              - light.turn_on:
+                  id: ${devicename}_ch1
+                  brightness: 1.0
+              - light.turn_on:
+                  id: ${devicename}_ch2
+                  brightness: 1.0
+            else:
+              - light.turn_off: ${devicename}_ch1
+              - light.turn_off: ${devicename}_ch2
+    on_press:
+      then:
+        - if:
+            condition:
+              light.is_off: ${devicename}_ch1
+            then:
+              - delay: 0.5s
+              - while:
+                  condition:
+                    binary_sensor.is_on: light_0_touch
+                  then:
+                    - light.dim_relative:
+                        id: ${devicename}_ch1
+                        relative_brightness: 5%
+                        transition_length: 0.1s
+                    - delay: 0.1s
+                    - light.dim_relative:
+                        id: ${devicename}_ch2
+                        relative_brightness: 5%
+                        transition_length: 0.1s
+                    - delay: 0.1s
+            else:
+              - delay: 0.5s
+              - while:
+                  condition:
+                    and:
+                      - binary_sensor.is_on: light_0_touch
+                      - light.is_on: ${devicename}_ch1
+                  then:
+                    - light.dim_relative:
+                        id: ${devicename}_ch1
+                        relative_brightness: -5%
+                        transition_length: 0.1s
+                    - delay: 0.1s
+                    - light.dim_relative:
+                        id: ${devicename}_ch2
+                        relative_brightness: -5%
+                        transition_length: 0.1s
+                    - delay: 0.1s
