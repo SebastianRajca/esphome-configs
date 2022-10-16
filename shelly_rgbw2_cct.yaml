@@ -1,7 +1,3 @@
-#
-# ESPhome - Shelly RGBW2 CCT 2 x Chanel
-#
-
 substitutions:
   devicename: "shelly_rgbw2_1"
   devicename_unc: "shelly-rgbw2-1"
@@ -49,38 +45,38 @@ time:
 output:
   - platform: esp8266_pwm
     id: ${devicename}_out_cw_ch1
-    pin: GPIO12 # GPIO12 Kanał czerwony (R)
+    pin: GPIO12 # GPIO12 Chanel RED (R) >> Chanel 1 cold_white
     frequency: 1000 Hz
   - platform: esp8266_pwm
     id: ${devicename}_out_ww_ch1
-    pin: GPIO15 # GPIO15 Zielony kanał (G)
+    pin: GPIO15 # GPIO15 Chanel Green (G) >> Chanel 1 warm_white
     frequency: 1000 Hz
   - platform: esp8266_pwm
     id: ${devicename}_out_cw_ch2
-    pin: GPIO14 # GPIO14 Kanał niebieski (B)
+    pin: GPIO14 # GPIO14 Chanel Blue (B) >> Chanel 2 cold_white
     frequency: 1000 Hz
   - platform: esp8266_pwm
     id: ${devicename}_out_ww_ch2
-    pin: GPIO4 # GPIO4 Kanał biały (W)
+    pin: GPIO4 # GPIO4 Chanel White (W) >> Chanel 2 warm_white
     frequency: 1000 Hz
 
 light:
   - platform: cwww
     name: ${devicename_name} - Chanel 1
     id: ${devicename}_ch1
-    cold_white: ${devicename}_out_cw_ch1 # GPIO12 Kanał czerwony (R)
-    warm_white: ${devicename}_out_ww_ch1 # GPIO15 Zielony kanał (G)
+    cold_white: ${devicename}_out_cw_ch1 # GPIO12 Chanel RED (R) >> Chanel 1 cold_white
+    warm_white: ${devicename}_out_ww_ch1 # GPIO15 Chanel Green (G) >> Chanel 1 warm_white
     cold_white_color_temperature: 6500 K
     warm_white_color_temperature: 2700 K
-    constant_brightness: true
+    constant_brightness: false
   - platform: cwww
     name: ${devicename_name} - Chanel 2
     id: ${devicename}_ch2
-    cold_white: ${devicename}_out_cw_ch2 # GPIO14 Kanał niebieski (B)
-    warm_white: ${devicename}_out_ww_ch2 # GPIO4 Kanał biały (W)
+    cold_white: ${devicename}_out_cw_ch2 # GPIO14 Chanel Blue (B) >> Chanel 2 cold_white
+    warm_white: ${devicename}_out_ww_ch2 # GPIO4 Chanel White (W) >> Chanel 2 warm_white
     cold_white_color_temperature: 6500 K
     warm_white_color_temperature: 2700 K
-    constant_brightness: true
+    constant_brightness: false
 
 binary_sensor:
   - platform: gpio
@@ -95,10 +91,10 @@ binary_sensor:
             then:
               - light.turn_on:
                   id: ${devicename}_ch1
-                  brightness: 1.0
+                  #brightness: 1.0
               - light.turn_on:
                   id: ${devicename}_ch2
-                  brightness: 1.0
+                  #brightness: 1.0
             else:
               - light.turn_off: ${devicename}_ch1
               - light.turn_off: ${devicename}_ch2
@@ -109,7 +105,7 @@ binary_sensor:
               light.is_off: ${devicename}_ch1
             then:
               - delay: 0.5s
-              - while:
+              - while: 
                   condition:
                     binary_sensor.is_on: light_0_touch
                   then:
