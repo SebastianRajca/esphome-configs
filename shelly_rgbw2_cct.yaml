@@ -1,3 +1,7 @@
+#
+# ESPhome - Shelly RGBW2 CCT 2 x Chanel
+#
+
 substitutions:
   devicename: "shelly_rgbw2_1"
   devicename_unc: "shelly-rgbw2-1"
